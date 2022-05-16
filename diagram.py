@@ -1,8 +1,10 @@
 from diagrams import Cluster, Diagram, Edge
+from diagrams.custom import Custom
 from diagrams.digitalocean.network import LoadBalancer
 from diagrams.k8s.infra import Master, Node
 from diagrams.onprem.compute import Server
 from diagrams.azure.identity import ActiveDirectory
+import urllib.request
 
 RHCOS = "Red Hat CoreOs"
 
@@ -72,10 +74,17 @@ with Diagram("OCP DEV CLUSTER", show=False, direction="TB", graph_attr=graph_att
                         routers = []
                         for node in reversed(OpenshiftRouters):
                             routers.append(Node(node.display()))
-        with Cluster("Externals"):
-            proxy = Server(CustomNode("Proxy", "proxy100:3128", "").display())
+        with Cluster("Externals"):            
             ad = ActiveDirectory(CustomNode("Active Directory", "corporate.local", "").display())
             bastion = Server(CustomNode("ocpdev01", RHCOS, "10.10.12.191").display())
+            
+            #Test custom using an image from internet
+            opener = urllib.request.URLopener()
+            opener.addheader('User-Agent', 'Mozilla/Chome/Edge')
+            proxy_url = "https://e7.pngegg.com/pngimages/863/387/png-clipart-proxy-server-computer-software-anonymity-information-technology-anonymous-web-browsing-others-blue-computer-network.png"
+            proxy_icon = "./custom-icons/proxy.png"
+            filename, headers = opener.retrieve(proxy_url, proxy_icon)
+            proxy = Custom(CustomNode("Proxy", "proxy100:3128", "").display(),proxy_icon)
 
     lbCluster >> Edge(ltail="loadbalancer_lbCluster", lhead="cluster_masters", color="red",
                       style="dashed") >> masters[1]
